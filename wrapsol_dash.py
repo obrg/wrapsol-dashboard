@@ -5,6 +5,15 @@ from datetime import date, timedelta
 from io import BytesIO
 import re
 
+import os
+
+os.environ["STREAMLIT_THEME_BASE"]                     = "light"
+os.environ["STREAMLIT_THEME_PRIMARY_COLOR"]            = "#FCD118"
+os.environ["STREAMLIT_THEME_BACKGROUND_COLOR"]         = "#F8F9F9"
+os.environ["STREAMLIT_THEME_SECONDARY_BACKGROUND_COLOR"] = "#FFFFFF"
+os.environ["STREAMLIT_THEME_TEXT_COLOR"]               = "#1a1a1a"
+os.environ["STREAMLIT_THEME_FONT"]                     = "sans serif"
+
 st.set_page_config(page_title="Wrapsol Dashboard", page_icon="🔆", layout="wide")
 
 # ── CSS ────────────────────────────────────────────────────────────────────────
