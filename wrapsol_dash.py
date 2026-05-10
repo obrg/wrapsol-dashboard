@@ -4,17 +4,88 @@ import plotly.graph_objects as go
 from datetime import date, timedelta
 from io import BytesIO
 import re
-
 import os
 
-os.environ["STREAMLIT_THEME_BASE"]                     = "light"
-os.environ["STREAMLIT_THEME_PRIMARY_COLOR"]            = "#FCD118"
-os.environ["STREAMLIT_THEME_BACKGROUND_COLOR"]         = "#F8F9F9"
+os.environ["STREAMLIT_THEME_BASE"]                       = "light"
+os.environ["STREAMLIT_THEME_PRIMARY_COLOR"]              = "#FCD118"
+os.environ["STREAMLIT_THEME_BACKGROUND_COLOR"]           = "#F8F9F9"
 os.environ["STREAMLIT_THEME_SECONDARY_BACKGROUND_COLOR"] = "#FFFFFF"
-os.environ["STREAMLIT_THEME_TEXT_COLOR"]               = "#1a1a1a"
-os.environ["STREAMLIT_THEME_FONT"]                     = "sans serif"
+os.environ["STREAMLIT_THEME_TEXT_COLOR"]                 = "#1a1a1a"
+os.environ["STREAMLIT_THEME_FONT"]                       = "sans serif"
 
 st.set_page_config(page_title="Wrapsol Dashboard", page_icon="🔆", layout="wide")
+
+# ── Translations ───────────────────────────────────────────────────────────────
+TR = {
+    "en": {
+        "title": "Operations Dashboard",
+        "cuts": "Cuts",
+        "this_week": "This Week",
+        "last_week": "Last Week",
+        "this_month": "This Month",
+        "last_90": "Last 90 Days",
+        "all_time": "All Time",
+        "avg_day": "Avg / Day",
+        "days_active": "Days Active",
+        "stores": "Stores",
+        "brands": "Brands",
+        "categories": "Categories",
+        "filters": "Filters",
+        "quick_week": "Quick Period",
+        "date_range": "Date Range",
+        "search_store": "Search Store",
+        "search_placeholder": "Type store name…",
+        "stores_label": "Stores",
+        "refresh": "🔄 Refresh Data",
+        "no_data": "No cuts found for the selected filters.",
+        "log_title": "✂️ Cuts Log",
+        "export_csv": "⬇️ Export CSV",
+        "export_excel": "⬇️ Export Excel",
+        "chart_cuts_time": "📈 Cuts Over Time",
+        "chart_top_stores": "🏪 Top Stores",
+        "chart_top_models": "🧩 Top Models",
+        "chart_categories": "📂 Categories",
+        "chart_brands": "🏷️ Top Brands",
+        "chart_by_hour": "🕐 Cuts by Hour",
+        "week_opts": ["All time", "This week", "Last week", "2 weeks ago", "3 weeks ago", "4 weeks ago"],
+        "sub_line": "cuts",
+        "language": "Language",
+    },
+    "tr": {
+        "title": "Operasyon Paneli",
+        "cuts": "Kesimler",
+        "this_week": "Bu Hafta",
+        "last_week": "Geçen Hafta",
+        "this_month": "Bu Ay",
+        "last_90": "Son 90 Gün",
+        "all_time": "Tüm Zamanlar",
+        "avg_day": "Günlük Ort.",
+        "days_active": "Aktif Gün",
+        "stores": "Mağazalar",
+        "brands": "Markalar",
+        "categories": "Kategoriler",
+        "filters": "Filtreler",
+        "quick_week": "Hızlı Dönem",
+        "date_range": "Tarih Aralığı",
+        "search_store": "Mağaza Ara",
+        "search_placeholder": "Mağaza adı yazın…",
+        "stores_label": "Mağazalar",
+        "refresh": "🔄 Veriyi Yenile",
+        "no_data": "Seçili filtreler için kesim bulunamadı.",
+        "log_title": "✂️ Kesim Kaydı",
+        "export_csv": "⬇️ CSV İndir",
+        "export_excel": "⬇️ Excel İndir",
+        "chart_cuts_time": "📈 Zamana Göre Kesimler",
+        "chart_top_stores": "🏪 Üst Mağazalar",
+        "chart_top_models": "🧩 Üst Modeller",
+        "chart_categories": "📂 Kategoriler",
+        "chart_brands": "🏷️ Üst Markalar",
+        "chart_by_hour": "🕐 Saate Göre Kesimler",
+        "week_opts": ["Tüm zamanlar", "Bu hafta", "Geçen hafta", "2 hafta önce", "3 hafta önce", "4 hafta önce"],
+        "sub_line": "kesim",
+        "language": "Dil",
+    },
+}
 
 # ── CSS ────────────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -43,7 +114,7 @@ p, span, div, label, li, td, th, h1, h2, h3, h4, h5, h6,
     color: #707A79 !important;
 }
 
-/* ── Every input surface — light mode ── */
+/* ── Every input surface ── */
 div[data-baseweb="input"],
 div[data-baseweb="base-input"],
 div[data-baseweb="input"] > div,
@@ -73,7 +144,7 @@ div[data-baseweb="select"]:focus-within {
     box-shadow: 0 0 0 2px rgba(252,209,24,0.18) !important;
 }
 
-/* ── Date input — force white ── */
+/* ── Date input ── */
 div[data-testid="stDateInput"] div[data-baseweb="input"],
 div[data-testid="stDateInput"] div[data-baseweb="base-input"],
 div[data-testid="stDateInput"] div[data-baseweb="input"] > div,
@@ -155,26 +226,46 @@ div[data-testid="stMetric"] {
     border-radius: 14px;
     padding: 16px 18px !important;
 }
-div[data-testid="stMetricLabel"] > div { font-size: 0.65rem !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 1.4px !important; color: #9ba5a4 !important; }
+div[data-testid="stMetricLabel"] > div {
+    font-size: 0.65rem !important; font-weight: 700 !important;
+    text-transform: uppercase !important; letter-spacing: 1.4px !important;
+    color: #9ba5a4 !important;
+}
 div[data-testid="stMetricValue"] > div { font-size: 1.75rem !important; font-weight: 800 !important; color: #1a1a1a !important; }
 div[data-testid="stMetricDelta"] > div { font-size: 0.82rem !important; font-weight: 700 !important; }
 div[data-testid="stMetricDelta"][data-direction=""] > div { color: #9ba5a4 !important; }
 
-/* ── Transactions special card ── */
-.txn-card {
+/* ── Cuts expanded card ── */
+.cuts-card {
     background: #FFFFFF;
     border: 1px solid #EAEAEA;
     border-radius: 14px;
-    padding: 16px 18px;
+    padding: 18px 20px 14px;
     border-left: 4px solid #FCD118;
 }
-.txn-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.4px; color: #9ba5a4 !important; margin-bottom: 6px; }
-.txn-total { font-size: 1.75rem; font-weight: 800; color: #1a1a1a !important; line-height: 1; margin-bottom: 12px; }
-.txn-divider { height: 1px; background: #EAEAEA; margin-bottom: 10px; }
-.txn-row { display: flex; justify-content: space-between; gap: 8px; }
-.txn-sub { flex: 1; }
-.txn-sub-lbl { font-size: 0.58rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #b0b8b7 !important; margin-bottom: 2px; }
-.txn-sub-val { font-size: 1.1rem; font-weight: 800; color: #1a1a1a !important; }
+.cuts-title {
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.4px; color: #9ba5a4 !important; margin-bottom: 4px;
+}
+.cuts-total {
+    font-size: 1.75rem; font-weight: 800; color: #1a1a1a !important;
+    line-height: 1; margin-bottom: 14px;
+}
+.cuts-divider { height: 1px; background: #EAEAEA; margin-bottom: 12px; }
+.cuts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px 6px;
+}
+.cuts-sub {}
+.cuts-sub-lbl {
+    font-size: 0.55rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #b0b8b7 !important; margin-bottom: 2px;
+}
+.cuts-sub-val { font-size: 1.05rem; font-weight: 800; color: #1a1a1a !important; }
+.cuts-delta-pos { font-size: 0.7rem; font-weight: 700; color: #22c55e !important; }
+.cuts-delta-neg { font-size: 0.7rem; font-weight: 700; color: #ef4444 !important; }
+.cuts-delta-neu { font-size: 0.7rem; font-weight: 700; color: #9ba5a4 !important; }
 
 /* ── Download buttons ── */
 [data-testid="stDownloadButton"] button {
@@ -209,15 +300,14 @@ SHEET_CSV_URL = (
 )
 
 DATE_COL    = "Transaction Date"
-STORE_COL   = "Store Name"
+STORE_COL   = "store name"
 DEVICE_COL  = "Device No"
 CAT_COL     = "Category"
 BRAND_COL   = "Brand"
 MODEL_COL   = "Model"
-PRODUCT_COL = "Product Name"
-PLT_COL     = "PLT Code"
 
-WS_COLORS = ["#FCD118","#c8ab00","#707A79","#9ba5a4","#e6c200","#4a5352","#fde066","#c0c8c7"]
+WS_COLORS = ["#FCD118","#c8ab00","#707A79","#9ba5a4","#e6c200","#4a5352","#fde066","#c0c8c7","#b89e00","#5a6463"]
+
 CL = dict(
     paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
     font=dict(family='Plus Jakarta Sans', color='#4a4a4a', size=11),
@@ -225,14 +315,16 @@ CL = dict(
     legend=dict(bgcolor='rgba(0,0,0,0)', font=dict(size=11, color='#4a4a4a')),
     colorway=WS_COLORS,
 )
-AX  = dict(showgrid=True,  gridcolor='#EAEAEA', zeroline=False, tickfont=dict(size=10, color='#707A79'))
-AXF = dict(showgrid=False, zeroline=False,       tickfont=dict(size=10, color='#707A79'))
+AX   = dict(showgrid=True,  gridcolor='#EAEAEA', zeroline=False, tickfont=dict(size=10, color='#707A79'))
+AXF  = dict(showgrid=False, zeroline=False,       tickfont=dict(size=10, color='#707A79'))
+AXF9 = dict(showgrid=False, zeroline=False,       tickfont=dict(size=9,  color='#707A79'))
 CHINESE_RE = re.compile(r'[\u4e00-\u9fff]+')
 
 # ── Load ───────────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=300)  # refresh every 5 minutes
+@st.cache_data(ttl=300)
 def load_data(url):
     df = pd.read_csv(url)
+    df.columns = df.columns.str.strip()
     df = df.map(lambda x: CHINESE_RE.sub('', str(x)).strip() if pd.notna(x) else x)
     df[DATE_COL] = pd.to_datetime(df[DATE_COL], errors='coerce')
     df['_date'] = df[DATE_COL].dt.date
@@ -246,29 +338,33 @@ except Exception as e:
     st.error(f"❌ Could not load data from Google Sheets: {e}")
     st.stop()
 
-# ── Sidebar ────────────────────────────────────────────────────────────────────
+# ── Language selector (sidebar top) ───────────────────────────────────────────
 with st.sidebar:
-    st.markdown('<div class="ws-logo">WRAP<span>SOL</span></div>', unsafe_allow_html=True)
-    st.markdown("**Filters**"); st.write("")
+    lang = st.selectbox("🌐 Language / Dil", ["English", "Türkçe"], label_visibility="collapsed")
+    L = TR["tr"] if lang == "Türkçe" else TR["en"]
 
-    week_options = ["All time", "This week", "Last week", "2 weeks ago", "3 weeks ago", "4 weeks ago"]
-    week_filter = st.selectbox("Quick Week Filter", week_options)
+    st.markdown('<div class="ws-logo">WRAP<span>SOL</span></div>', unsafe_allow_html=True)
+    st.markdown(f"**{L['filters']}**"); st.write("")
+
+    week_opts = L["week_opts"]
+    week_filter = st.selectbox(L["quick_week"], week_opts)
 
     min_d, max_d = df['_date'].min(), df['_date'].max()
+    override = week_filter != week_opts[0]
     date_range = st.date_input(
-        "Date Range" + (" (overridden)" if week_filter != "All time" else ""),
+        L["date_range"] + (" (overridden)" if override else ""),
         value=(min_d, max_d), min_value=min_d, max_value=max_d,
-        disabled=(week_filter != "All time"),
+        disabled=override,
     )
 
-    store_q = st.text_input("Search Store", placeholder="Type store name…")
+    store_q = st.text_input(L["search_store"], placeholder=L["search_placeholder"])
     stores_all = sorted(df[STORE_COL].dropna().unique())
     if store_q:
         stores_all = [s for s in stores_all if store_q.lower() in str(s).lower()]
-    sel_stores = st.multiselect("Stores", stores_all, default=list(stores_all))
+    sel_stores = st.multiselect(L["stores_label"], stores_all, default=list(stores_all))
 
     st.markdown("---")
-    if st.button("🔄 Refresh Data", use_container_width=True):
+    if st.button(L["refresh"], use_container_width=True):
         st.cache_data.clear()
         st.rerun()
     st.caption(f"📅 {date.today().strftime('%d %B %Y')}")
@@ -276,9 +372,9 @@ with st.sidebar:
 # ── Resolve date window ────────────────────────────────────────────────────────
 latest = df['_date'].max()
 
-if week_filter != "All time":
-    week_offsets = {"This week": 0, "Last week": 1, "2 weeks ago": 2, "3 weeks ago": 3, "4 weeks ago": 4}
-    offset = week_offsets[week_filter]
+if override:
+    week_offsets = {w: i for i, w in enumerate(week_opts)}
+    offset = week_offsets.get(week_filter, 0)
     resolved_end   = latest - timedelta(weeks=offset)
     resolved_start = resolved_end - timedelta(days=6)
 else:
@@ -288,9 +384,24 @@ else:
 # ── Apply filters ──────────────────────────────────────────────────────────────
 f = df.copy()
 f = f[(f['_date'] >= resolved_start) & (f['_date'] <= resolved_end)]
-if sel_stores: f = f[f[STORE_COL].isin(sel_stores)]
+if sel_stores:
+    f = f[f[STORE_COL].isin(sel_stores)]
 
-# ── Week-over-week helper ──────────────────────────────────────────────────────
+# ── Helpers ────────────────────────────────────────────────────────────────────
+def cuts_in(df_in, start, end=None):
+    if end is None:
+        return len(df_in[df_in['_date'] >= start])
+    return len(df_in[(df_in['_date'] >= start) & (df_in['_date'] <= end)])
+
+def delta_html(cur, prev):
+    if prev == 0 or prev is None:
+        return f'<span class="cuts-delta-neu">—</span>'
+    pct = (cur - prev) / prev * 100
+    sign = "+" if pct >= 0 else ""
+    cls = "cuts-delta-pos" if pct >= 0 else "cuts-delta-neg"
+    arrow = "▲" if pct >= 0 else "▼"
+    return f'<span class="{cls}">{arrow} {sign}{pct:.1f}%</span>'
+
 def wk_pct(df_in, col=None):
     latest_d = df_in['_date'].max() if not df_in.empty else date.today()
     tw_s = latest_d - timedelta(days=6)
@@ -298,96 +409,94 @@ def wk_pct(df_in, col=None):
     lw_s = lw_e - timedelta(days=6)
     tw = df_in[(df_in['_date'] >= tw_s) & (df_in['_date'] <= latest_d)]
     lw = df_in[(df_in['_date'] >= lw_s) & (df_in['_date'] <= lw_e)]
-    tv = len(tw)       if col is None else tw[col].nunique()
-    lv = len(lw)       if col is None else lw[col].nunique()
+    tv = len(tw)  if col is None else tw[col].nunique()
+    lv = len(lw)  if col is None else lw[col].nunique()
     pct = ((tv - lv) / lv * 100) if lv > 0 else None
     return tv, pct
 
 def fmt_delta(pct):
-    if pct is None:
-        return None
-    sign = "+" if pct >= 0 else ""
-    return f"{sign}{pct:.1f}%"
+    if pct is None: return None
+    return f"{'+'if pct>=0 else ''}{pct:.1f}%"
 
-# ── Compute week/month transaction counts ─────────────────────────────────────
-today_d    = latest
-week_start = today_d - timedelta(days=6)
-month_start = today_d.replace(day=1)
+# ── Cuts breakdown ─────────────────────────────────────────────────────────────
+today_d      = latest
+tw_start     = today_d - timedelta(days=6)
+lw_end       = tw_start - timedelta(days=1)
+lw_start     = lw_end - timedelta(days=6)
+month_start  = today_d.replace(day=1)
+prev_month_end   = month_start - timedelta(days=1)
+prev_month_start = prev_month_end.replace(day=1)
+d90_start    = today_d - timedelta(days=89)
+prev90_start = d90_start - timedelta(days=90)
+prev90_end   = d90_start - timedelta(days=1)
 
-txn_week  = len(f[f['_date'] >= week_start])
-txn_month = len(f[f['_date'] >= month_start])
+cuts_total      = len(f)
+cuts_this_week  = cuts_in(f, tw_start)
+cuts_last_week  = cuts_in(f, lw_start, lw_end)
+cuts_this_month = cuts_in(f, month_start)
+cuts_prev_month = cuts_in(f, prev_month_start, prev_month_end)
+cuts_90         = cuts_in(f, d90_start)
+cuts_prev_90    = cuts_in(f, prev90_start, prev90_end)
+days_total      = max((f['_date'].max() - f['_date'].min()).days + 1, 1) if not f.empty else 1
+avg_day         = round(len(f) / days_total, 1)
+days_active     = f['_date'].nunique()
 
 # ── Header ─────────────────────────────────────────────────────────────────────
-st.markdown('<div class="page-title">Operations Dashboard</div>', unsafe_allow_html=True)
-active_label = f"Week: {resolved_start.strftime('%d %b')} → {resolved_end.strftime('%d %b %Y')}" if week_filter != "All time" else f"{resolved_start.strftime('%d %b')} → {resolved_end.strftime('%d %b %Y')}"
-st.markdown(f'<div class="page-sub"><b>{len(f):,}</b> transactions &nbsp;·&nbsp; {active_label}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="page-title">{L["title"]}</div>', unsafe_allow_html=True)
+active_label = f"{resolved_start.strftime('%d %b')} → {resolved_end.strftime('%d %b %Y')}"
+st.markdown(f'<div class="page-sub"><b>{len(f):,}</b> {L["sub_line"]} &nbsp;·&nbsp; {active_label}</div>', unsafe_allow_html=True)
 st.markdown('<hr class="ws-hr">', unsafe_allow_html=True)
 
-# ── KPI Row 1 ─────────────────────────────────────────────────────────────────
-k0, k1, k2, k3, k4 = st.columns(5)
+# ── KPI Row 1: Cuts expanded card + secondary metrics ─────────────────────────
+k0, k1, k2, k3 = st.columns([1.6, 1, 1, 1])
 
 with k0:
-    _, tw_pct = wk_pct(f)
     st.markdown(f"""
-    <div class="txn-card">
-        <div class="txn-title">Transactions</div>
-        <div class="txn-total">{len(f):,}</div>
-        <div class="txn-divider"></div>
-        <div class="txn-row">
-            <div class="txn-sub">
-                <div class="txn-sub-lbl">This Week</div>
-                <div class="txn-sub-val">{txn_week:,}</div>
+    <div class="cuts-card">
+        <div class="cuts-title">{L['cuts']}</div>
+        <div class="cuts-total">{cuts_total:,}</div>
+        <div class="cuts-divider"></div>
+        <div class="cuts-grid">
+            <div class="cuts-sub">
+                <div class="cuts-sub-lbl">{L['this_week']}</div>
+                <div class="cuts-sub-val">{cuts_this_week:,}</div>
+                {delta_html(cuts_this_week, cuts_last_week)}
             </div>
-            <div class="txn-sub">
-                <div class="txn-sub-lbl">This Month</div>
-                <div class="txn-sub-val">{txn_month:,}</div>
+            <div class="cuts-sub">
+                <div class="cuts-sub-lbl">{L['last_week']}</div>
+                <div class="cuts-sub-val">{cuts_last_week:,}</div>
+            </div>
+            <div class="cuts-sub">
+                <div class="cuts-sub-lbl">{L['this_month']}</div>
+                <div class="cuts-sub-val">{cuts_this_month:,}</div>
+                {delta_html(cuts_this_month, cuts_prev_month)}
+            </div>
+            <div class="cuts-sub">
+                <div class="cuts-sub-lbl">{L['last_90']}</div>
+                <div class="cuts-sub-val">{cuts_90:,}</div>
+                {delta_html(cuts_90, cuts_prev_90)}
+            </div>
+            <div class="cuts-sub">
+                <div class="cuts-sub-lbl">{L['all_time']}</div>
+                <div class="cuts-sub-val">{len(df):,}</div>
+            </div>
+            <div class="cuts-sub">
+                <div class="cuts-sub-lbl">{L['avg_day']}</div>
+                <div class="cuts-sub-val">{avg_day}</div>
             </div>
         </div>
     </div>""", unsafe_allow_html=True)
 
-metric_defs_r1 = [
-    (k1, "Active Stores",  f[STORE_COL].nunique(),   STORE_COL),
-    (k2, "Brands",         f[BRAND_COL].nunique(),   BRAND_COL),
-    (k3, "Products",       f[PRODUCT_COL].nunique(), PRODUCT_COL),
-    (k4, "Models",         f['_brand_model'].nunique(), '_brand_model'),
-]
-for col, lbl, total, wk_col in metric_defs_r1:
-    _, pct = wk_pct(f, wk_col)
-    with col:
-        st.metric(label=lbl, value=f"{total:,}", delta=fmt_delta(pct))
+_, tw_pct_stores = wk_pct(f, STORE_COL)
+_, tw_pct_brands = wk_pct(f, BRAND_COL)
+_, tw_pct_cats   = wk_pct(f, CAT_COL)
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ── KPI Row 2 ─────────────────────────────────────────────────────────────────
-k5, k6, k7, k8, k9 = st.columns(5)
-
-days_active = f['_date'].nunique()
-days_total  = max((f['_date'].max() - f['_date'].min()).days + 1, 1) if not f.empty else 1
-avg_day     = round(len(f) / days_total, 1)
-
-tw_s2 = latest - timedelta(days=6)
-lw_e2 = tw_s2 - timedelta(days=1)
-lw_s2 = lw_e2 - timedelta(days=6)
-tw_avg = round(len(f[f['_date'] >= tw_s2]) / 7, 1)
-lw_cnt = len(f[(f['_date'] >= lw_s2) & (f['_date'] <= lw_e2)])
-lw_avg = round(lw_cnt / 7, 1)
-avg_pct = ((tw_avg - lw_avg) / lw_avg * 100) if lw_avg > 0 else None
-
-metric_defs_r2 = [
-    (k5, "PLT Codes",   f[PLT_COL].nunique(),  PLT_COL),
-    (k6, "Days Active", days_active,            '_date'),
-    (k7, "Avg / Day",   avg_day,                None),
-    (k8, "Stores",      f[STORE_COL].nunique(), STORE_COL),
-    (k9, "Categories",  f[CAT_COL].nunique(),   CAT_COL),
-]
-for col, lbl, total, wk_col in metric_defs_r2:
-    if lbl == "Avg / Day":
-        with col:
-            st.metric(label=lbl, value=f"{avg_day}", delta=fmt_delta(avg_pct))
-    else:
-        _, pct = wk_pct(f, wk_col)
-        with col:
-            st.metric(label=lbl, value=f"{total:,}", delta=fmt_delta(pct))
+with k1:
+    st.metric(label=L["stores"],     value=f"{f[STORE_COL].nunique():,}", delta=fmt_delta(tw_pct_stores))
+with k2:
+    st.metric(label=L["brands"],     value=f"{f[BRAND_COL].nunique():,}", delta=fmt_delta(tw_pct_brands))
+with k3:
+    st.metric(label=L["categories"], value=f"{f[CAT_COL].nunique():,}",  delta=fmt_delta(tw_pct_cats))
 
 st.markdown("<br>", unsafe_allow_html=True)
 
@@ -395,7 +504,7 @@ st.markdown("<br>", unsafe_allow_html=True)
 c1, c2 = st.columns([1.6, 1])
 
 with c1:
-    st.markdown('<div class="sec">📈 Transactions Over Time</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sec">{L["chart_cuts_time"]}</div>', unsafe_allow_html=True)
     daily = f.groupby('_date').size().reset_index(name='Count')
     daily.columns = ['Date', 'Count']
     fig1 = go.Figure(go.Scatter(
@@ -404,106 +513,117 @@ with c1:
         marker=dict(color='#FCD118', size=5, line=dict(color='#fff', width=1.5)),
         fill='tozeroy', fillcolor='rgba(252,209,24,0.12)',
     ))
-    fig1.update_layout(**CL, height=280); fig1.update_xaxes(**AXF); fig1.update_yaxes(**AX)
+    fig1.update_layout(**CL, height=280)
+    fig1.update_xaxes(**AXF)
+    fig1.update_yaxes(**AX)
     st.plotly_chart(fig1, use_container_width=True)
 
 with c2:
-    st.markdown('<div class="sec">🏪 Top Stores</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sec">{L["chart_top_stores"]}</div>', unsafe_allow_html=True)
     sc = f[STORE_COL].value_counts().head(10).reset_index()
     sc.columns = ['Store', 'Count']
+    # gradient from gray to yellow
+    n = len(sc)
+    bar_colors = [f"rgba(252,209,24,{0.35 + 0.65*(i/(max(n-1,1)))})" for i in range(n)][::-1]
     fig2 = go.Figure(go.Bar(
         x=sc['Count'], y=sc['Store'], orientation='h',
-        marker=dict(color=sc['Count'], colorscale=[[0,'#EAEAEA'],[1,'#FCD118']], line=dict(width=0)),
+        marker=dict(color=bar_colors, line=dict(width=0)),
+        text=sc['Count'], textposition='outside',
+        textfont=dict(size=10, color='#4a4a4a'),
     ))
-    fig2.update_layout(**CL, height=280); fig2.update_xaxes(**AX); fig2.update_yaxes(**AXF, autorange='reversed')
+    fig2.update_layout(**CL, height=280)
+    fig2.update_xaxes(**AX)
+    fig2.update_yaxes(**AXF, autorange='reversed')
     st.plotly_chart(fig2, use_container_width=True)
 
 # ── Charts Row 2 ───────────────────────────────────────────────────────────────
 c3, c4, c5 = st.columns(3)
 
 with c3:
-    st.markdown('<div class="sec">🧩 Top Models</div>', unsafe_allow_html=True)
-    mc = f['_brand_model'].value_counts().head(8).reset_index()
+    st.markdown(f'<div class="sec">{L["chart_top_models"]}</div>', unsafe_allow_html=True)
+    mc = f['_brand_model'].value_counts().head(10).reset_index()
     mc.columns = ['Model', 'Count']
-    fig3 = go.Figure(go.Pie(
-        labels=mc['Model'], values=mc['Count'], hole=0.52,
-        marker=dict(colors=WS_COLORS, line=dict(color='#fff', width=2)),
-        textfont=dict(size=10, color='#4a4a4a'),
+    # sort ascending so largest bar is at top
+    mc = mc.sort_values('Count', ascending=True)
+    n = len(mc)
+    bar_colors_m = [f"rgba(252,209,24,{0.3 + 0.7*(i/(max(n-1,1)))})" for i in range(n)]
+    fig3 = go.Figure(go.Bar(
+        x=mc['Count'], y=mc['Model'], orientation='h',
+        marker=dict(color=bar_colors_m, line=dict(width=0)),
+        text=mc['Count'], textposition='outside',
+        textfont=dict(size=9, color='#4a4a4a'),
     ))
-    fig3.update_layout(**CL, height=270,
-        annotations=[dict(text='Models', x=0.5, y=0.5, showarrow=False,
-                          font=dict(size=12, color='#707A79', family='Plus Jakarta Sans'))])
+    fig3.update_layout(**CL, height=290)
+    fig3.update_xaxes(**AX)
+    fig3.update_yaxes(**AXF9)
     st.plotly_chart(fig3, use_container_width=True)
 
 with c4:
-    st.markdown('<div class="sec">📂 Categories</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="sec">{L["chart_categories"]}</div>', unsafe_allow_html=True)
     cc = f[CAT_COL].value_counts().reset_index()
     cc.columns = ['Category', 'Count']
     clrs = (WS_COLORS * (len(cc)//len(WS_COLORS)+1))[:len(cc)]
     fig4 = go.Figure(go.Bar(
         x=cc['Category'], y=cc['Count'],
         marker=dict(color=clrs, line=dict(width=0)),
-        text=cc['Count'], textposition='outside', textfont=dict(size=10, color='#4a4a4a'),
+        text=cc['Count'], textposition='outside',
+        textfont=dict(size=10, color='#4a4a4a'),
     ))
-    fig4.update_layout(**CL, height=270); fig4.update_xaxes(**AXF, tickangle=-30); fig4.update_yaxes(**AX)
+    fig4.update_layout(**CL, height=290)
+    fig4.update_xaxes(**AXF, tickangle=-30)
+    fig4.update_yaxes(**AX)
     st.plotly_chart(fig4, use_container_width=True)
 
 with c5:
-    st.markdown('<div class="sec">🏷️ Brands</div>', unsafe_allow_html=True)
-    bc = f[BRAND_COL].value_counts().head(8).reset_index()
+    st.markdown(f'<div class="sec">{L["chart_brands"]}</div>', unsafe_allow_html=True)
+    bc = f[BRAND_COL].value_counts().head(10).reset_index()
     bc.columns = ['Brand', 'Count']
-    fig5 = go.Figure(go.Pie(
-        labels=bc['Brand'], values=bc['Count'], hole=0.52,
-        marker=dict(colors=WS_COLORS, line=dict(color='#fff', width=2)),
-        textfont=dict(size=10, color='#4a4a4a'),
+    bc = bc.sort_values('Count', ascending=True)
+    n = len(bc)
+    bar_colors_b = [f"rgba(112,122,121,{0.3 + 0.7*(i/(max(n-1,1)))})" for i in range(n)]
+    fig5 = go.Figure(go.Bar(
+        x=bc['Count'], y=bc['Brand'], orientation='h',
+        marker=dict(color=bar_colors_b, line=dict(width=0)),
+        text=bc['Count'], textposition='outside',
+        textfont=dict(size=9, color='#4a4a4a'),
     ))
-    fig5.update_layout(**CL, height=270,
-        annotations=[dict(text='Brands', x=0.5, y=0.5, showarrow=False,
-                          font=dict(size=12, color='#707A79', family='Plus Jakarta Sans'))])
+    fig5.update_layout(**CL, height=290)
+    fig5.update_xaxes(**AX)
+    fig5.update_yaxes(**AXF9)
     st.plotly_chart(fig5, use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ── Charts Row 3 ───────────────────────────────────────────────────────────────
-c6, c7 = st.columns([1, 1.2])
-
-with c6:
-    st.markdown('<div class="sec">🕐 Transactions by Hour</div>', unsafe_allow_html=True)
-    hr = f.groupby('_hour').size().reset_index(name='Count')
-    hr.columns = ['Hour', 'Count']
-    fig6 = go.Figure(go.Bar(
-        x=hr['Hour'], y=hr['Count'],
-        marker=dict(color=hr['Count'], colorscale=[[0,'#EAEAEA'],[1,'#FCD118']], line=dict(width=0)),
-    ))
-    fig6.update_layout(**CL, height=260)
-    fig6.update_xaxes(**AXF, tickvals=list(range(0,24)), ticktext=[f"{h:02d}:00" for h in range(24)], tickangle=-45)
-    fig6.update_yaxes(**AX)
-    st.plotly_chart(fig6, use_container_width=True)
-
-with c7:
-    st.markdown('<div class="sec">📦 Top Products</div>', unsafe_allow_html=True)
-    pc = f[PRODUCT_COL].value_counts().head(10).reset_index()
-    pc.columns = ['Product', 'Count']
-    fig7 = go.Figure(go.Bar(
-        x=pc['Count'], y=pc['Product'], orientation='h',
-        marker=dict(color='#707A79', line=dict(width=0)),
-        text=pc['Count'], textposition='outside', textfont=dict(size=10, color='#4a4a4a'),
-    ))
-    fig7.update_layout(**CL, height=260); fig7.update_xaxes(**AX); fig7.update_yaxes(**AXF, autorange='reversed')
-    st.plotly_chart(fig7, use_container_width=True)
+# ── Chart Row 3: Cuts by Hour ──────────────────────────────────────────────────
+st.markdown(f'<div class="sec">{L["chart_by_hour"]}</div>', unsafe_allow_html=True)
+hr = f.groupby('_hour').size().reset_index(name='Count')
+hr.columns = ['Hour', 'Count']
+# fill missing hours with 0
+all_hours = pd.DataFrame({'Hour': range(24)})
+hr = all_hours.merge(hr, on='Hour', how='left').fillna(0)
+hr['Count'] = hr['Count'].astype(int)
+max_count = hr['Count'].max() if hr['Count'].max() > 0 else 1
+bar_colors_h = [f"rgba(252,209,24,{0.2 + 0.8*(v/max_count)})" for v in hr['Count']]
+fig6 = go.Figure(go.Bar(
+    x=hr['Hour'], y=hr['Count'],
+    marker=dict(color=bar_colors_h, line=dict(width=0)),
+    text=hr['Count'].where(hr['Count']>0, other=''),
+    textposition='outside', textfont=dict(size=9, color='#4a4a4a'),
+))
+fig6.update_layout(**CL, height=240)
+fig6.update_xaxes(**AXF, tickvals=list(range(24)), ticktext=[f"{h:02d}:00" for h in range(24)], tickangle=-45)
+fig6.update_yaxes(**AX)
+st.plotly_chart(fig6, use_container_width=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Data Table ─────────────────────────────────────────────────────────────────
-st.markdown('<div class="sec">📋 Transaction Log</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="sec">{L["log_title"]}</div>', unsafe_allow_html=True)
 
-all_wanted = [DATE_COL, STORE_COL, DEVICE_COL, CAT_COL, BRAND_COL, MODEL_COL, PRODUCT_COL, PLT_COL]
-display_cols = [c for c in all_wanted if c in f.columns]
+display_cols = [c for c in [DATE_COL, STORE_COL, DEVICE_COL, CAT_COL, BRAND_COL, MODEL_COL] if c in f.columns]
 
 if f.empty:
-    st.info("No transactions found for the selected filters.")
-elif not display_cols:
-    st.dataframe(f.reset_index(drop=True), use_container_width=True, height=380)
+    st.info(L["no_data"])
 else:
     st.dataframe(f[display_cols].reset_index(drop=True), use_container_width=True, height=380)
 
@@ -513,14 +633,15 @@ st.markdown("<br>", unsafe_allow_html=True)
 export_df = f[display_cols] if display_cols else f
 dl1, dl2, _ = st.columns([1,1,3])
 with dl1:
-    st.download_button("⬇️ Export CSV",
+    st.download_button(L["export_csv"],
         data=export_df.to_csv(index=False).encode(),
-        file_name=f"{date.today().strftime('%Y%m%d')}_wrapsol_log.csv",
+        file_name=f"{date.today().strftime('%Y%m%d')}_wrapsol_cuts.csv",
         mime='text/csv', use_container_width=True)
 with dl2:
-    buf = BytesIO(); export_df.to_excel(buf, index=False)
-    st.download_button("⬇️ Export Excel",
+    buf = BytesIO()
+    export_df.to_excel(buf, index=False)
+    st.download_button(L["export_excel"],
         data=buf.getvalue(),
-        file_name=f"{date.today().strftime('%Y%m%d')}_wrapsol_log.xlsx",
+        file_name=f"{date.today().strftime('%Y%m%d')}_wrapsol_cuts.xlsx",
         mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         use_container_width=True)
