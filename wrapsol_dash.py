@@ -67,7 +67,9 @@ TR = {
         "overridden": "(overridden)",
         "stores_label": "Stores",
         "stores_ph": "All stores — pick to narrow",
-        "stores_help": "Leave empty to include every store. Type inside the box to search.",
+        "stores_help": "Leave empty to include every store.",
+        "stores_search_label": "Search stores",
+        "stores_search_ph": "Type to filter the list below (Turkish letters supported)",
         "refresh": "🔄 Refresh Data",
         "week_opts": ["All time", "Latest 7 days", "1 week back", "2 weeks back", "3 weeks back", "4 weeks back"],
         "cuts": "Cuts (selected period)",
@@ -119,7 +121,9 @@ TR = {
         "overridden": "(devre dışı)",
         "stores_label": "Mağazalar",
         "stores_ph": "Tüm mağazalar — daraltmak için seçin",
-        "stores_help": "Tüm mağazalar için boş bırakın. Aramak için kutuya yazın.",
+        "stores_help": "Tüm mağazalar için boş bırakın.",
+        "stores_search_label": "Mağaza ara",
+        "stores_search_ph": "Aşağıdaki listeyi daraltmak için yazın",
         "refresh": "🔄 Veriyi Yenile",
         "week_opts": ["Tüm zamanlar", "Son 7 gün", "1 hafta önce", "2 hafta önce", "3 hafta önce", "4 hafta önce"],
         "cuts": "Kesimler (seçili dönem)",
@@ -315,14 +319,35 @@ with st.sidebar:
         disabled=override,
     )
 
-    # Empty selection = all stores. The old version pre-selected every store
-    # (a wall of chips) and paired it with a separate search box that reset
-    # the selection whenever the query changed; the multiselect's built-in
-    # typeahead already covers searching.
+    # Empty selection = all stores. The multiselect's own built-in typeahead
+    # lowercases with plain JS/Python casing rules, which mishandle Turkish
+    # dotted/dotless I (İ.lower() != "i", so typing "iletişim" matches none
+    # of the "İletişim" stores). Filter the option list ourselves with a
+    # Turkish-aware fold instead of relying on the widget's search box.
     stores_all = sorted(df[STORE_COL].dropna().unique())
+
+    def _tr_fold(s: str) -> str:
+        return s.replace("İ", "i").replace("I", "ı").lower()
+
+    store_query = st.text_input(
+        L["stores_search_label"], value="", placeholder=L["stores_search_ph"],
+    )
+    if store_query.strip():
+        q = _tr_fold(store_query.strip())
+        matches = [s for s in stores_all if q in _tr_fold(s)]
+    else:
+        matches = stores_all
+
+    # Keep already-selected stores in the option list even when the current
+    # query filters them out, so typing a new search term can't silently
+    # drop a prior selection (and Streamlit doesn't reject it as an option
+    # no longer present in the widget's `options`).
+    prior_sel = st.session_state.get("sel_stores", [])
+    store_options = sorted(set(matches) | set(prior_sel))
+
     sel_stores = st.multiselect(
-        L["stores_label"], stores_all, default=[],
-        placeholder=L["stores_ph"], help=L["stores_help"],
+        L["stores_label"], store_options, default=[],
+        placeholder=L["stores_ph"], help=L["stores_help"], key="sel_stores",
     )
 
     st.markdown("---")
