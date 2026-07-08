@@ -290,8 +290,18 @@ def load_data(url):
     return df, n_dupes, n_bad_dates
 
 
+if "refresh_token" not in st.session_state:
+    st.session_state["refresh_token"] = 0
+
+# Google's publish-to-web CSV export is itself cached on Google's side for a
+# few minutes, independent of our own @st.cache_data ttl. Clearing our cache
+# alone can still hand back the same stale CSV, so the "Refresh" button also
+# appends a changing query param — Google's cache is keyed on the full URL,
+# so a new param forces a fresh export instead of a cached one.
+fetch_url = f"{SHEET_CSV_URL}&_cb={st.session_state['refresh_token']}"
+
 try:
-    df, n_dupes, n_bad_dates = load_data(SHEET_CSV_URL)
+    df, n_dupes, n_bad_dates = load_data(fetch_url)
 except Exception as e:
     st.error(f"❌ Could not load data from Google Sheets: {e}")
     st.stop()
@@ -353,6 +363,7 @@ with st.sidebar:
     st.markdown("---")
     if st.button(L["refresh"], use_container_width=True):
         st.cache_data.clear()
+        st.session_state["refresh_token"] += 1
         st.rerun()
 
     last_ts = df[DATE_COL].max()
