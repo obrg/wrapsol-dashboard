@@ -31,7 +31,6 @@ DEVICE_COL = "Device No"
 CAT_COL    = "Category"
 BRAND_COL  = "Brand"
 MODEL_COL  = "Model"
-TXN_COL    = "Transaction No"
 
 # ── Palette (light mode) ───────────────────────────────────────────────────────
 # Categorical slots from the validated reference palette; the 5-slot pie order
@@ -262,11 +261,9 @@ def load_data(url):
 
     n_raw = len(df)
     # The sheet grows by appended exports that can overlap; exact repeats are
-    # not new cuts. Prefer the transaction id when the sheet carries one.
-    if TXN_COL in df.columns:
-        df = df.drop_duplicates(subset=[TXN_COL])
-    else:
-        df = df.drop_duplicates()
+    # not new cuts. Rows can share a Transaction No while differing in other
+    # columns, so dedup on the full row rather than the id alone.
+    df = df.drop_duplicates()
     n_dupes = n_raw - len(df)
 
     df[DATE_COL] = pd.to_datetime(df[DATE_COL], errors="coerce")
