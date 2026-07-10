@@ -361,7 +361,7 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    if st.button(L["refresh"], width='stretch'):
+    if st.button(L["refresh"], use_container_width=True):
         st.cache_data.clear()
         st.session_state["refresh_token"] += 1
         st.rerun()
@@ -581,12 +581,12 @@ else:
         fig.update_layout(**CL, height=290, bargap=0.4)
         fig.update_xaxes(**AXF)
         fig.update_yaxes(**AX)
-        st.plotly_chart(fig, width='stretch', config=PC)
+        st.plotly_chart(fig, use_container_width=True, config=PC)
 
     with c2:
         st.markdown(f'<div class="sec">{L["chart_stores"]}</div>', unsafe_allow_html=True)
         sc = sel[STORE_COL].value_counts().head(10)
-        st.plotly_chart(hbar(sc, height=290), width='stretch', config=PC)
+        st.plotly_chart(hbar(sc, height=290), use_container_width=True, config=PC)
 
     # ── Row 2: hour, weekday, categories ──────────────────────────────────────
     c3, c4, c5 = st.columns([1.3, 1, 0.8])
@@ -602,7 +602,7 @@ else:
         fig.update_layout(**CL, height=250, bargap=0.3)
         fig.update_xaxes(**AXF, tickangle=0)
         fig.update_yaxes(**AX)
-        st.plotly_chart(fig, width='stretch', config=PC)
+        st.plotly_chart(fig, use_container_width=True, config=PC)
 
     with c4:
         st.markdown(f'<div class="sec">{L["chart_dow"]}</div>', unsafe_allow_html=True)
@@ -615,19 +615,19 @@ else:
         fig.update_layout(**CL, height=250, bargap=0.35)
         fig.update_xaxes(**AXF)
         fig.update_yaxes(**AX)
-        st.plotly_chart(fig, width='stretch', config=PC)
+        st.plotly_chart(fig, use_container_width=True, config=PC)
 
     with c5:
         st.markdown(f'<div class="sec">{L["chart_cats"]}</div>', unsafe_allow_html=True)
         cc = sel[CAT_COL].value_counts()
-        st.plotly_chart(hbar(cc, color=YELLOW, height=250), width='stretch', config=PC)
+        st.plotly_chart(hbar(cc, color=YELLOW, height=250), use_container_width=True, config=PC)
 
     # ── Row 3: models + brand share ───────────────────────────────────────────
     c6, c7 = st.columns([1.2, 1])
     with c6:
         st.markdown(f'<div class="sec">{L["chart_models"]}</div>', unsafe_allow_html=True)
         mc = sel["_brand_model"].value_counts().head(10)
-        st.plotly_chart(hbar(mc, color=ORANGE, height=300), width='stretch', config=PC)
+        st.plotly_chart(hbar(mc, color=ORANGE, height=300), use_container_width=True, config=PC)
     with c7:
         st.markdown(f'<div class="sec">{L["chart_brands"]}</div>', unsafe_allow_html=True)
         bc = sel[BRAND_COL].value_counts()
@@ -657,7 +657,7 @@ else:
                 font=dict(size=18, color=INK, family="JetBrains Mono"),
             )],
         )
-        st.plotly_chart(fig, width='stretch', config=PC)
+        st.plotly_chart(fig, use_container_width=True, config=PC)
 
     st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
@@ -677,7 +677,7 @@ else:
     lb = lb.sort_values(L["lb_cuts"], ascending=False).reset_index().rename(columns={STORE_COL: L["lb_store"]})
 
     st.dataframe(
-        lb, width='stretch', height=min(38 * (len(lb) + 1), 420), hide_index=True,
+        lb, use_container_width=True, height=min(38 * (len(lb) + 1), 420), hide_index=True,
         column_config={
             L["lb_share"]: st.column_config.ProgressColumn(
                 L["lb_share"], format="percent", min_value=0.0, max_value=1.0
@@ -691,14 +691,14 @@ else:
     st.markdown(f'<div class="sec">{L["log_title"]}</div>', unsafe_allow_html=True)
     display_cols = [c for c in [DATE_COL, STORE_COL, DEVICE_COL, CAT_COL, BRAND_COL, MODEL_COL] if c in sel.columns]
     log = sel.sort_values(DATE_COL, ascending=False)[display_cols].reset_index(drop=True)
-    st.dataframe(log, width='stretch', height=380)
+    st.dataframe(log, use_container_width=True, height=380)
 
     dl1, dl2, _ = st.columns([1, 1, 3])
     with dl1:
         st.download_button(
             L["export_csv"], data=log.to_csv(index=False).encode("utf-8-sig"),
             file_name=f"{date.today().strftime('%Y%m%d')}_wrapsol_cuts.csv",
-            mime="text/csv", width='stretch',
+            mime="text/csv", use_container_width=True,
         )
     with dl2:
         buf = BytesIO()
@@ -707,5 +707,5 @@ else:
             L["export_excel"], data=buf.getvalue(),
             file_name=f"{date.today().strftime('%Y%m%d')}_wrapsol_cuts.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            width='stretch',
+            use_container_width=True,
         )
