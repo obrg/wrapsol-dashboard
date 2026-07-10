@@ -659,7 +659,7 @@ else:
         )
         st.plotly_chart(fig, width='stretch', config=PC)
 
-    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)+
+    st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
 
     # ── Store leaderboard ─────────────────────────────────────────────────────
     st.markdown(f'<div class="sec">{L["leaderboard"]}</div>', unsafe_allow_html=True)
